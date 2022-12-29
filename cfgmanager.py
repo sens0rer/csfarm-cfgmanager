@@ -1,6 +1,8 @@
 import os
 import json
 from mafiletotxt import fileToData, SDAdirectory
+import pygsheets
+import numpy as np
 
 
 def getSDAdata(directory):
@@ -18,7 +20,7 @@ def getSDAdata(directory):
     return SDAdata
 
 
-class cfg:
+class CfgHandler:
     def __init__(self, name):
         self.filename = name + ".json"
         # Create file if it does not exist
@@ -51,14 +53,34 @@ class cfg:
 
 if __name__ == "__main__":
     SDA = getSDAdata(SDAdirectory)
-    config = cfg("config")
-    while True:
-        username = input("Username: ")
-        password = input("Password: ")
-        if not(username and password):
-            break
+    config = CfgHandler("config")
+    # while True:
+    #     username = input("Username: ")
+    #     password = input("Password: ")
+    #     if not(username and password):
+    #         break
+    #     config.update(username,
+    #                   password,
+    #                   SDA[username.lower()]['ID64'],
+    #                   SDA[username.lower()]['Shared secret'],
+    #                   SDA[username.lower()]['Identity secret'])
+
+    # change stars to serfice file path and the name of your sheet
+    gc = pygsheets.authorize(
+        service_file='*****')
+    sheet = gc.open('****')
+    worksheet = sheet[0]
+    account_data = worksheet.get_all_values()
+    config_dict = config.read()
+    account_data = np.array(account_data)
+    account_data = account_data.T
+    for i, username in enumerate(account_data[0][1:]):
+        if username in config_dict:
+            continue
+        if not account_data[5][i+1]:
+            continue
         config.update(username,
-                      password,
+                      account_data[1][i+1],
                       SDA[username.lower()]['ID64'],
                       SDA[username.lower()]['Shared secret'],
                       SDA[username.lower()]['Identity secret'])
